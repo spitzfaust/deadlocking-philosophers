@@ -8,13 +8,14 @@
 
 #include <mutex>
 #include <atomic>
+#include <memory>
 
 class Fork {
 
 public:
     Fork(unsigned long id);
 
-    void use();
+    void use(const std::shared_ptr<std::atomic_bool> &continueTrying);
 
     void putBack();
 

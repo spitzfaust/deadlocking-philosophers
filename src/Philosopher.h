@@ -13,8 +13,8 @@
 class Philosopher {
 public:
     Philosopher(unsigned long id, int maxThinkingTimeInMilliseconds,
-                int maxEatingTimeInMilliseconds, const std::shared_ptr<Fork> &rightFork,
-                const std::shared_ptr<Fork> &leftFork,
+                int maxEatingTimeInMilliseconds, bool withDeadlock,
+                const std::shared_ptr<Fork> &rightFork, const std::shared_ptr<Fork> &leftFork,
                 std::shared_ptr<std::atomic_bool> dinnerIsRunning,
                 std::shared_ptr<RandomIntGenerator> randomIntGenerator,
                 std::shared_ptr<Logger> logger);
@@ -40,6 +40,15 @@ private:
     const unsigned long id;
     const int maxThinkingTimeInMilliseconds;
     const int maxEatingTimeInMilliseconds;
+    const bool withDeadlock;
+
+    void takeLeftAndThenRightFork();
+
+    void takeRightAndThenLeftFork();
+
+    void takeForksWithoutDeadlock();
+
+    void takeForksWithDeadlock();
 };
 
 

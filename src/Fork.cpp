@@ -7,8 +7,8 @@
 Fork::Fork(const unsigned long id) : id(id), mutex(std::mutex()) {}
 
 
-void Fork::use() {
-    mutex.lock();
+void Fork::use(const std::shared_ptr<std::atomic_bool> &continueTrying) {
+    while (continueTrying->load() && !mutex.try_lock()) {}
 }
 
 void Fork::putBack() {

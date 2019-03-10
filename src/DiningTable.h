@@ -12,18 +12,22 @@
 class DiningTable {
 public:
     DiningTable(unsigned long numberOfPhilosophers, int maxThinkingTimeInMilliseconds,
-                int maxEatingTimeInMilliseconds, std::shared_ptr<Logger> logger);
+                int maxEatingTimeInMilliseconds, const bool withDeadlock,
+                std::shared_ptr<Logger> logger);
+
     void startDinner();
+
     void endDinner();
 
 private:
     std::vector<Philosopher> philosophers;
     std::vector<std::thread> threads;
     const std::shared_ptr<Logger> logger;
-    unsigned long numberOfPhilosophers;
     std::shared_ptr<std::atomic_bool> dinnerIsRunning;
+    unsigned long numberOfPhilosophers;
     const int maxThinkingTimeInMilliseconds;
     const int maxEatingTimeInMilliseconds;
+    const bool withDeadlock;
 };
 
 

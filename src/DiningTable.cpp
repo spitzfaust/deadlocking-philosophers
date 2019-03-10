@@ -5,10 +5,12 @@
 #include "DiningTable.h"
 
 DiningTable::DiningTable(unsigned long numberOfPhilosophers, const int maxThinkingTimeInMilliseconds,
-                         const int maxEatingTimeInMilliseconds, const std::shared_ptr<Logger> logger) :
+                         const int maxEatingTimeInMilliseconds, const bool withDeadlock,
+                         const std::shared_ptr<Logger> logger) :
         numberOfPhilosophers(numberOfPhilosophers),
         maxThinkingTimeInMilliseconds(maxThinkingTimeInMilliseconds),
         maxEatingTimeInMilliseconds(maxEatingTimeInMilliseconds),
+        withDeadlock(withDeadlock),
         logger(logger),
         threads(std::vector<std::thread>()),
         philosophers(std::vector<Philosopher>()),
@@ -23,6 +25,7 @@ DiningTable::DiningTable(unsigned long numberOfPhilosophers, const int maxThinki
         philosophers.emplace_back(Philosopher(j,
                                               maxThinkingTimeInMilliseconds,
                                               maxEatingTimeInMilliseconds,
+                                              withDeadlock,
                                               forks[(j + 1) % numberOfPhilosophers],
                                               forks[j],
                                               dinnerIsRunning,

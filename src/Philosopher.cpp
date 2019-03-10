@@ -9,14 +9,15 @@
 #include "Philosopher.h"
 
 Philosopher::Philosopher(const unsigned long id, const int maxThinkingTimeInMilliseconds,
-                         const int maxEatingTimeInMilliseconds, const std::shared_ptr<Fork> &rightFork,
-                         const std::shared_ptr<Fork> &leftFork,
+                         const int maxEatingTimeInMilliseconds, const bool withDeadlock,
+                         const std::shared_ptr<Fork> &rightFork, const std::shared_ptr<Fork> &leftFork,
                          const std::shared_ptr<std::atomic_bool> dinnerIsRunning,
                          const std::shared_ptr<RandomIntGenerator> randomIntGenerator,
                          const std::shared_ptr<Logger> logger) :
         id(id),
         maxThinkingTimeInMilliseconds(maxThinkingTimeInMilliseconds),
         maxEatingTimeInMilliseconds(maxEatingTimeInMilliseconds),
+        withDeadlock(withDeadlock),
         rightFork(rightFork),
         leftFork(leftFork),
         logger(logger),
@@ -25,20 +26,50 @@ Philosopher::Philosopher(const unsigned long id, const int maxThinkingTimeInMill
 
 void Philosopher::dine() {
     while (!dinnerInProgress->load()) {}
-    logger->info("{} starts dining", id);
+    logger->info("{} starts dining, deadlocks should happen is {}", id, withDeadlock);
     while (dinnerInProgress->load()) {
         think();
-        logger->info("{} takes left fork with id {}", id, leftFork->getId());
-        takeFork(leftFork);
-        logger->info("{} took left fork with id {}", id, leftFork->getId());
-        logger->info("{} takes right fork with id {}", id, rightFork->getId());
-        takeFork(rightFork);
-        logger->info("{} took right fork with id {}", id, rightFork->getId());
+        if (withDeadlock) {
+            takeForksWithDeadlock();
+        } else {
+            takeForksWithoutDeadlock();
+        }
         eat();
-        putBackForks();
+        if (dinnerInProgress->load()) {
+            putBackForks();
+        }
         logger->info("{} returned forks", id);
     }
     logger->info("{} stops dining", id);
+}
+
+void Philosopher::takeForksWithDeadlock() { takeLeftAndThenRightFork(); }
+
+void Philosopher::takeForksWithoutDeadlock() {
+    if ((id % 2) == 0) {
+        takeRightAndThenLeftFork();
+    } else {
+        takeLeftAndThenRightFork();
+    }
+}
+
+void Philosopher::takeRightAndThenLeftFork() {
+    logger->info("{} takes right fork with id {}", id, rightFork->getId());
+    takeFork(rightFork);
+    logger->info("{} took right fork with id {}", id, rightFork->getId());
+    logger->info("{} takes left fork with id {}", id, leftFork->getId());
+    takeFork(leftFork);
+    logger->info("{} took left fork with id {}", id, leftFork->getId());
+}
+
+
+void Philosopher::takeLeftAndThenRightFork() {
+    logger->info("{} takes left fork with id {}", id, leftFork->getId());
+    takeFork(leftFork);
+    logger->info("{} took left fork with id {}", id, leftFork->getId());
+    logger->info("{} takes right fork with id {}", id, rightFork->getId());
+    takeFork(rightFork);
+    logger->info("{} took right fork with id {}", id, rightFork->getId());
 }
 
 void Philosopher::think() const {
@@ -50,7 +81,7 @@ void Philosopher::think() const {
 
 
 void Philosopher::takeFork(std::shared_ptr<Fork> fork) {
-    fork->use();
+    fork->use(dinnerInProgress);
 }
 
 void Philosopher::eat() const {

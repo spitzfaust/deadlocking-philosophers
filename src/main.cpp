@@ -7,12 +7,14 @@ int main(int argc, char *argv[]) {
     int numberOfPhilosophers = 0;
     int maxThinkingTimeInMilliseconds = 0;
     int maxEatingTimeInMilliseconds = 0;
+    bool withDeadlock = false;
     try {
         // Initialize program options and parse them
         cxxopts::Options options(argv[0], "Concurrency - Dining Philosophers");
         options.positional_help("[optional args]")
                 .show_positional_help();
         options.add_options()
+                ("d,deadlock", "do not prevent deadlock", cxxopts::value<bool>(withDeadlock))
                 ("n,philosophers", "number of philosophers", cxxopts::value<int>(numberOfPhilosophers))
                 ("t,thinking", "maximal thinking time of philosophers in milliseconds",
                  cxxopts::value<int>(maxThinkingTimeInMilliseconds))
@@ -40,8 +42,10 @@ int main(int argc, char *argv[]) {
               << "Max eating time: " << maxEatingTimeInMilliseconds << std::endl;
 
     auto logger = std::make_shared<Logger>(spdlog::default_logger());
-    auto diningTable = DiningTable(static_cast<unsigned long>(numberOfPhilosophers), maxThinkingTimeInMilliseconds,
+    auto diningTable = DiningTable(static_cast<unsigned long>(numberOfPhilosophers),
+                                   maxThinkingTimeInMilliseconds,
                                    maxEatingTimeInMilliseconds,
+                                   withDeadlock,
                                    logger);
 
     diningTable.startDinner();
