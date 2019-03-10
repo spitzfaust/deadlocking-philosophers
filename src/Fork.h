@@ -13,7 +13,7 @@
 class Fork {
 
 public:
-    Fork(unsigned long id);
+    Fork(unsigned long id, std::shared_ptr<std::atomic_ullong> waitTimeMilliseconds);
 
     void use(const std::shared_ptr<std::atomic_bool> &continueTrying);
 
@@ -22,6 +22,7 @@ public:
     unsigned long getId() const;
 
 private:
+    std::shared_ptr<std::atomic_ullong> waitTimeMilliseconds;
     std::mutex mutex;
     const unsigned long id;
 };

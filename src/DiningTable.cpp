@@ -14,11 +14,11 @@ DiningTable::DiningTable(unsigned long numberOfPhilosophers, const int maxThinki
         logger(logger),
         threads(std::vector<std::thread>()),
         philosophers(std::vector<Philosopher>()),
-        dinnerIsRunning(std::make_shared<std::atomic_bool>(false)) {
-
+        dinnerIsRunning(std::make_shared<std::atomic_bool>(false)),
+        forkWaitTimeMilliseconds(std::make_shared<std::atomic_ullong>(0)) {
     auto forks = std::vector<std::shared_ptr<Fork>>();
     for (unsigned long i = 0; i < numberOfPhilosophers; ++i) {
-        forks.emplace_back(std::make_shared<Fork>(i));
+        forks.emplace_back(std::make_shared<Fork>(i, forkWaitTimeMilliseconds));
     }
     auto randomIntGenerator = std::make_shared<RandomIntGenerator>();
     for (unsigned long j = 0; j < numberOfPhilosophers; ++j) {
@@ -42,6 +42,7 @@ void DiningTable::startDinner() {
         }));
     }
     dinnerIsRunning->store(true);
+    startTime = std::chrono::high_resolution_clock::now();
 }
 
 void DiningTable::endDinner() {
@@ -49,5 +50,9 @@ void DiningTable::endDinner() {
     for (auto &thread : threads) {
         thread.join();
     }
+    auto endTime = std::chrono::high_resolution_clock::now();
+    auto totalTime = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count();
+    logger->info("Dinner ran for {}ms", totalTime);
+    logger->info("Total fork wait time {}ms", forkWaitTimeMilliseconds->load());
 }
 
