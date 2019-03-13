@@ -7,6 +7,7 @@
 
 
 #include <mutex>
+#include <condition_variable>
 #include <atomic>
 #include <memory>
 
@@ -19,12 +20,16 @@ public:
 
     void putBack();
 
+    void clearFromTable();
+
     unsigned long getId() const;
 
 private:
     std::shared_ptr<std::atomic_ullong> waitTimeMilliseconds;
     std::mutex mutex;
+    std::condition_variable conditionVariable;
     const unsigned long id;
+    bool isInUse;
 };
 
 

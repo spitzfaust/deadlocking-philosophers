@@ -8,6 +8,8 @@
 
 #include "Logger.h"
 #include "Philosopher.h"
+#include <thread>
+#include <condition_variable>
 
 class DiningTable {
 public:
@@ -21,6 +23,7 @@ public:
 
 private:
     std::vector<Philosopher> philosophers;
+    std::vector<std::shared_ptr<Fork>> forks;
     std::vector<std::thread> threads;
     const std::shared_ptr<Logger> logger;
     std::shared_ptr<std::atomic_ullong> forkWaitTimeMilliseconds;

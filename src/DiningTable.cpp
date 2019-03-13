@@ -14,9 +14,11 @@ DiningTable::DiningTable(unsigned long numberOfPhilosophers, const int maxThinki
         logger(logger),
         threads(std::vector<std::thread>()),
         philosophers(std::vector<Philosopher>()),
+        forks(std::vector<std::shared_ptr<Fork>>()),
         dinnerIsRunning(std::make_shared<std::atomic_bool>(false)),
-        forkWaitTimeMilliseconds(std::make_shared<std::atomic_ullong>(0)) {
-    auto forks = std::vector<std::shared_ptr<Fork>>();
+        forkWaitTimeMilliseconds(std::make_shared<std::atomic_ullong>(0)) {}
+
+void DiningTable::startDinner() {
     for (unsigned long i = 0; i < numberOfPhilosophers; ++i) {
         forks.emplace_back(std::make_shared<Fork>(i, forkWaitTimeMilliseconds));
     }
@@ -33,9 +35,6 @@ DiningTable::DiningTable(unsigned long numberOfPhilosophers, const int maxThinki
                                               logger));
     }
 
-}
-
-void DiningTable::startDinner() {
     for (auto &philosopher : philosophers) {
         threads.emplace_back(std::thread([&philosopher]() {
             philosopher.dine();
@@ -47,6 +46,9 @@ void DiningTable::startDinner() {
 
 void DiningTable::endDinner() {
     dinnerIsRunning->store(false);
+    for(auto &fork : forks) {
+        fork->clearFromTable();
+    }
     for (auto &thread : threads) {
         thread.join();
     }
